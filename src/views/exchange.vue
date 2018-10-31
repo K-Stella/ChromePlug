@@ -3,15 +3,15 @@
     我是汇率换算页面
     <div
       class="currency_list"
-      v-for="(item,index) in (currency)"
+      v-for="(item,index) in (currencyList)"
       :key="index"
     >
       <el-card
-        class="box-card"
+        class="box_card"
         shadow="hover"
       >
         <div class="item_left">
-          <img :src=item.src /><span @click="showlist(index)">{{ item.countryName }}</span>
+          <img :src=item.countryFlag /><span @click="showlist(item, index)">{{ item.symbol }}</span>
           <select v-model="item.index" name="countryOptions" @change="changeCountry(item,countryOptions)" >
             <option :value="options.name" v-for="(options) in countryOptions" :key="options">
               <span>{{ options.name }}</span>
@@ -19,70 +19,59 @@
           </select>
         </div>
         <div class="item_right" style="float: right; display: grid; margin-right: 50px;">
-          <el-input v-model="input" placeholder="100"></el-input>
-          <span class="money_name" style="text-align: right;">{{ item.moneyName }}</span>
+          <el-input v-model="input" :placeholder="item.currentPrice"></el-input>
+          <div class="current_currency">
+            <span class="currency_name" style="text-align: right;">{{ item.currencyName }}</span>
+            <span class="currency_sign" style="text-align: right;">{{ item.currencySign }}</span>
+          </div>
         </div>
       </el-card>
     </div>
-    <!-- <div v-for="item in currency" :key="item">
-      <el-card class="box-card" shadow="hover">
-        <div class="text item" style="height: 25px; margin-bottom: 5px;">
-          <div class="item_left" style="float: left;">
-            <span><img class="countryFlag" :src=item.src style="width: 50px;" />{{ item.countryName }}</span>
-              <ul v-show="flag">
-                <li @click="checkThis(item.countryName,item.src)" v-for="item in currency" :key="item">
-                  <img :src="item.src" />
-                  <span>{{ item.countryName }}</span>
-                </li>
-              </ul>
-          </div>
-          <div class="item_right" style="float: right; display: grid;">
-            <el-input v-model="input" placeholder="100"></el-input>
-            <span class="money_name" style="text-align: right;">{{ item.moneyName }}</span>
-          </div>
-        </div>
-      </el-card>
-    </div> -->
   </div>
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   name: 'Exchange',
   data () {
     return {
-      selected: '',
       flag: false,
-      currency: [
+      currencyList: [
         {
-          src: '../../static/img/china.png',
-          countryName: '中国',
-          money: '100',
-          moneyName: '人民币¥'
+          countryFlag: 'https://oahox70gu.qnssl.com/explorer/country/CNY@3x.png',
+          symbol: 'CNY',
+          currencyName: '人民币',
+          currencySign: '¥',
+          currentPrice: 100
         },
         {
-          src: '../../static/img/america.png',
-          countryName: '美国',
-          money: '100',
-          moneyName: '美元¥'
+          countryFlag: 'https://oahox70gu.qnssl.com/explorer/country/USD@3x.png',
+          symbol: 'USD',
+          currencyName: '美元',
+          currencySign: '¥',
+          currentPrice: 150
         },
         {
-          src: '../../static/img/italy.png',
-          countryName: '意大利',
-          money: '100',
-          moneyName: '意大利元¥'
+          countryFlag: 'https://oahox70gu.qnssl.com/explorer/country/EUR@3x.png',
+          symbol: 'EUR',
+          currencyName: '欧元',
+          currencySign: '¥',
+          currentPrice: 200
         },
         {
-          src: '../../static/img/hongkong.png',
-          countryName: '香港',
-          money: '100',
-          moneyName: '港币¥'
+          countryFlag: 'https://oahox70gu.qnssl.com/explorer/country/HKD@3x.png',
+          symbol: 'HKD',
+          currencyName: '港币',
+          currencySign: '¥',
+          currentPrice: 150
         },
         {
-          src: '../../static/img/macao.png',
-          countryName: '澳门',
-          money: '100',
-          moneyName: '澳元币¥'
+          countryFlag: 'https://oahox70gu.qnssl.com/explorer/country/MOP@3x.png',
+          symbol: 'MOP',
+          currencyName: '澳元币',
+          currencySign: '¥',
+          currentPrice: 100
         }
       ],
       countryOptions: [
@@ -116,17 +105,30 @@ export default {
           moneyName: '人民币¥',
           src: '../../static/img/china.png'
         }
-      ]
+      ],
+      initDate: []
     }
   },
+  mounted () {
+    axios.get('/api/ver2/exchange/unionpay/latest').then(response => {
+      this.initDate = response
+      console.log('initDtae:', this.initDate)
+
+      // 初始化显示数据
+      for (let i = 0; i < this.currencyList.length; i++) {
+        this.currencyList[i].currentPrice = 500
+      }
+    })
+  },
   methods: {
-    showlist: function (index) {
+    showlist: function (item, index) {
       console.log(index)
       this.flag = !this.flag
-      console.log('111' + this.countryOptions[index].flag)
+      console.log(item)
     },
     changeCountry: function (item, countryOptions) {
-      item.countryName = item.index
+      console.log('换城市')
+      item.symbol = item.index
       for (let i = 0; i < countryOptions.length; i++) {
         if (countryOptions[i].name === item.index) {
           item.src = countryOptions[i].src
@@ -156,39 +158,7 @@ export default {
     width: 850px;
     margin: 0 auto;
   }
-  /* .el-card {
-      border: 1px solid #464646;
-      background-color: #434958eb !important;
-      color: #26282b;
-      -webkit-transition: .3s;
-      transition: .3s;
-      border-radius: 0px;
-  }
-  .el-card__body {
-    padding: 5px;
-    width: 600px;
-  }
-  .el-card:hover {
-    background-color: #666b75 !important;
-  }
-  .el-input__inner {
+  .current_currency {
     text-align: right;
-    -webkit-appearance: none;
-    background-color: #515766;
-    background-image: none;
-    border-radius: 4px;
-    border: 1px solid #515766;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    color: #ffffff;
-    display: inline-block;
-    font-size: inherit;
-    height: 40px;
-    line-height: 40px;
-    outline: 0;
-    padding: 0 15px;
-    -webkit-transition: border-color .2s cubic-bezier(.645,.045,.355,1);
-    transition: border-color .2s cubic-bezier(.645,.045,.355,1);
-    width: 100%;
-  } */
+  }
 </style>

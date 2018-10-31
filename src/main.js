@@ -7,6 +7,7 @@ import Element from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 
 Vue.config.productionTip = false
+Vue.prototype.HOST = '/api'
 Vue.use(Element)
 
 /* eslint-disable no-new */
