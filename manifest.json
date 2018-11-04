@@ -1,0 +1,35 @@
+{
+  "manifest_version": 2,
+  "name": "xCurrency",
+  "version": "1.0.0",
+  "description": "Easy to exchange.",
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon16.png",
+    "128": "images/icon16.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon16.png"
+    },
+    "default_title": "xCurrency",
+    "default_popup": "dist/index.html"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "permissions": [
+    "storage" ,
+    "webRequest"
+  ],
+  "content_scripts": [{
+    "matches": ["*://*/*"],
+    "js": ["content.js"],
+    "run_at": "document_start",
+    "all_frames": true
+  }],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}
