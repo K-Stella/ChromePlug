@@ -11,9 +11,9 @@
         shadow="hover"
       >
         <div class="item_left">
-          <img :src=item.countryFlag @click="changeCardNum(index)"/><span>{{ item.symbol }}</span>
+          <img :src=item.countryFlag /><span>{{ item.symbol }}</span>
           <select v-model="item.index" name="countryOptions" @change="changeCountry(item,countryOptions,index)" >
-            <option :value="options.symbol" v-for="(options) in countryOptions" :key="options">
+            <option :value="options.symbol" v-for="(options) in countryOptions">
               <span>{{ options.symbol }}</span>
             </option>
           </select>
@@ -171,219 +171,80 @@ export default {
         // console.log(index)
       }
       axios.get('/api/ver2/exchange/unionpay/latest').then(response => {
-        let topCur, bottomCur, basCur
         if (index !== this.focusIndex) {
-          if (this.curIndex === 'CNY') {
-            for (let j = 0; j < response.data.resources.length; j++) {
-              if (item.symbol + '=X' === response.data.resources[j].resource.fields.symbol) {
-                this.currencyList[index].currentPrice = response.data.resources[j].resource.fields['xch-sell'] * 100
-                this.currencyList[index].currentPrice = this.currencyList[index].currentPrice.toFixed(2)
-                if (this.currencyList[index].input !== null) {
-                  this.currencyList[index].input = response.data.resources[j].resource.fields['xch-sell'] * this.currencyList[this.focusIndex].input
-                  this.currencyList[index].input = this.currencyList[index].input.toFixed(2)
-                }
-              }
-            }
-          } else {
-            for (let j = 0; j < response.data.resources.length; j++) {
-              if (this.curIndex + '=X' === response.data.resources[j].resource.fields.symbol) {
-                topCur = response.data.resources[j].resource.fields['xch-sell']
-                break
-              }
-            }
-            for (let y = 0; y < response.data.resources.length; y++) {
-              if (item.symbol + '=X' === response.data.resources[y].resource.fields.symbol) {
-                bottomCur = 1 / (response.data.resources[y].resource.fields['xch-sell'])
-                basCur = 1 / (topCur * bottomCur)
-                this.currencyList[index].currentPrice = basCur * 100
-                this.currencyList[index].currentPrice = this.currencyList[index].currentPrice.toFixed(2)
-                if (this.currencyList[index].input !== null) {
-                  this.currencyList[index].input = response.data.resources[y].resource.fields['xch-sell'] * this.currencyList[this.focusIndex].input
-                  this.currencyList[index].input = this.currencyList[index].input.toFixed(2)
-                }
-              }
-            }
-          }
+          console.log(this.curIndex)
+          console.log(item.index)
+          this.updateCurrencyList(this.curIndex, item.index, null, index, response)
         } else {
-          console.log('all')
-          if (item.symbol === 'CNY') {
-            for (let i = 0; i < this.currencyList.length; i++) {
-              if (i === index) {
-                continue
-              }
-              // console.log('currencyList:', this.currencyList)
-              for (let j = 0; j < response.data.resources.length; j++) {
-                if (this.currencyList[i].symbol + '=X' === response.data.resources[j].resource.fields.symbol) {
-                  this.currencyList[i].currentPrice = response.data.resources[j].resource.fields['xch-sell'] * 100
-                  this.currencyList[i].currentPrice = this.currencyList[i].currentPrice.toFixed(2)
-                  if (this.currencyList[i].input !== null) {
-                    this.currencyList[i].input = response.data.resources[j].resource.fields['xch-sell'] * this.currencyList[this.focusIndex].input
-                    this.currencyList[i].input = this.currencyList[i].input.toFixed(2)
-                  }
-                }
-              }
-            }
-          } else {
-            for (let x = 0; x < response.data.resources.length; x++) {
-              if (item.symbol + '=X' === response.data.resources[x].resource.fields.symbol) {
-                // console.log('1')
-                topCur = response.data.resources[x].resource.fields['xch-sell']
-                // console.log(topCur)
-                break
-              }
-            }
-            for (let x = 0; x < this.currencyList.length; x++) {
-              if (x === index) {
-                continue
-              } else {
-                for (let y = 0; y < response.data.resources.length; y++) {
-                  if (this.currencyList[x].symbol + '=X' === response.data.resources[y].resource.fields.symbol) {
-                    // console.log('2')
-                    bottomCur = 1 / (response.data.resources[y].resource.fields['xch-sell'])
-                    // console.log(bottomCur)
-                    basCur = 1 / (topCur * bottomCur)
-                    // console.log('3')
-                    // console.log(basCur)
-                    this.currencyList[x].currentPrice = basCur * 100
-                    this.currencyList[x].currentPrice = this.currencyList[x].currentPrice.toFixed(2)
-                    if (this.currencyList[x].input !== null) {
-                      this.currencyList[x].input = basCur * this.currencyList[this.focusIndex].input
-                      this.currencyList[x].input = this.currencyList[x].input.toFixed(2)
-                    }
-                  }
-                }
-              }
-            }
+          this.curIndex = item.index
+          for (let x = 0; x < this.currencyList.length; x++) {
+            this.updateCurrencyList(item.index, this.currencyList[x].symbol, null, x, response)
           }
         }
       })
     },
     handleFocus: function (index, list) {
-      console.log('第' + index + '个输入框')
-      console.log(list)
+      // console.log('第' + index + '个输入框')
+      // console.log(list)
       for (let x = 0; x < this.currencyList.length; x++) {
         this.currencyList[x].input = null
       }
       // 当前默认为100
-      this.currencyList[index].currentPrice = 100
+      this.currencyList[index].currentPrice = '请输入金额'
       this.curIndex = list.symbol
       this.focusIndex = index
-      console.log(this.currencyList)
+      // console.log(this.currencyList)
       axios.get('/api/ver2/exchange/unionpay/latest').then(response => {
-        let topCur, bottomCur, basCur
-        if (this.curIndex === 'CNY') {
-          for (let i = 0; i < this.currencyList.length; i++) {
-            if (i === index) {
-              continue
-            }
-            // console.log('currencyList:', this.currencyList)
-            for (let j = 0; j < response.data.resources.length; j++) {
-              if (this.currencyList[i].symbol + '=X' === response.data.resources[j].resource.fields.symbol) {
-                this.currencyList[i].currentPrice = response.data.resources[j].resource.fields['xch-sell'] * 100
-                this.currencyList[i].currentPrice = this.currencyList[i].currentPrice.toFixed(2)
-              }
-            }
-          }
-        } else {
-          for (let x = 0; x < response.data.resources.length; x++) {
-            if (this.curIndex + '=X' === response.data.resources[x].resource.fields.symbol) {
-              // console.log('1')
-              topCur = response.data.resources[x].resource.fields['xch-sell']
-              // console.log(topCur)
-              break
-            }
-          }
-          for (let x = 0; x < this.currencyList.length; x++) {
-            if (x === index) {
-              continue
-            } else {
-              for (let y = 0; y < response.data.resources.length; y++) {
-                if (this.currencyList[x].symbol + '=X' === response.data.resources[y].resource.fields.symbol) {
-                  // console.log('2')
-                  bottomCur = 1 / (response.data.resources[y].resource.fields['xch-sell'])
-                  // console.log(bottomCur)
-                  basCur = 1 / (topCur * bottomCur)
-                  // console.log('3')
-                  // console.log(basCur)
-                  this.currencyList[x].currentPrice = basCur * 100
-                  this.currencyList[x].currentPrice = this.currencyList[x].currentPrice.toFixed(2)
-                }
-              }
-            }
-          }
+        for (let x = 0; x < this.currencyList.length; x++) {
+          this.updateCurrencyList(this.curIndex, this.currencyList[x].symbol, this.currencyList[this.focusIndex].input, x, response)
         }
       })
     },
     inputCur: function (index, item) {
       console.log(this.curIndex)
       console.log(item.input)
-      // let currency
-      if (this.curIndex === 'CNY') {
-        axios.get('/api/ver2/exchange/unionpay/latest').then(response => {
-          for (let x = 0; x < this.currencyList.length; x++) {
-            if (x === index) {
-              continue
-            }
-            for (let y = 0; y < response.data.resources.length; y++) {
-              if (this.currencyList[x].symbol + '=X' === response.data.resources[y].resource.fields.symbol) {
-                this.currencyList[x].input = response.data.resources[y].resource.fields['xch-sell'] * this.currencyList[this.focusIndex].input
-                console.log(this.currencyList[x].input)
-                this.currencyList[x].input = this.currencyList[x].input.toFixed(2)
-              }
-            }
-          }
-        })
-        // for (let x = 0; x < this.currencyList.length; x++) {
-        //   if (x === index) {
-        //     continue
-        //   }
-        //   // currency = this.curCNY(this.currencyList[x].symbol)
-        //   // console.log(currency)
-        //   this.currencyList[x].currentPrice = currency * 100
-        //   this.currencyList[x].currentPrice = this.currencyList[x].currentPrice.toFixed(2)
-        // }
-      } else {
-        let topCur, bottomCur, basCur
-        axios.get('/api/ver2/exchange/unionpay/latest').then(response => {
-          for (let x = 0; x < response.data.resources.length; x++) {
-            if (this.curIndex + '=X' === response.data.resources[x].resource.fields.symbol) {
-              // console.log('1')
-              topCur = response.data.resources[x].resource.fields['xch-sell']
-              // console.log(topCur)
-              break
-            }
-          }
-          for (let x = 0; x < this.currencyList.length; x++) {
-            if (x === index) {
-              continue
-            } else {
-              for (let y = 0; y < response.data.resources.length; y++) {
-                if (this.currencyList[x].symbol + '=X' === response.data.resources[y].resource.fields.symbol) {
-                  // console.log('2')
-                  bottomCur = 1 / (response.data.resources[y].resource.fields['xch-sell'])
-                  // console.log(bottomCur)
-                  basCur = 1 / (topCur * bottomCur)
-                  // console.log('3')
-                  // console.log(basCur)
-                  this.currencyList[x].input = basCur * this.currencyList[this.focusIndex].input
-                  this.currencyList[x].input = this.currencyList[x].input.toFixed(2)
-                }
-              }
-            }
-          }
-        })
-      }
-    },
-    curCNY: function (goal) {
       axios.get('/api/ver2/exchange/unionpay/latest').then(response => {
-        for (let x = 0; x < response.data.resources.length; x++) {
-          if (goal + '=X' === response.data.resources[x].resource.fields.symbol) {
-            // console.log(goal)
-            console.log(response.data.resources[x].resource.fields['xch-sell'])
-            return response.data.resources[x].resource.fields['xch-sell']
-          }
+        for (let x = 0; x < this.currencyList.length; x++) {
+          this.updateCurrencyList(this.curIndex, this.currencyList[x].symbol, this.currencyList[this.focusIndex].input, x, response)
         }
       })
+    },
+    // curCNY: function (goal) {
+    //   axios.get('/api/ver2/exchange/unionpay/latest').then(response => {
+    //     for (let x = 0; x < response.data.resources.length; x++) {
+    //       if (goal + '=X' === response.data.resources[x].resource.fields.symbol) {
+    //         // console.log(goal)
+    //         console.log(response.data.resources[x].resource.fields['xch-sell'])
+    //         return response.data.resources[x].resource.fields['xch-sell']
+    //       }
+    //     }
+    //   })
+    // },
+    updateCurrencyList: function (basCur, goalCur, inputNum, index, response) {
+      let topCur, bottomCur, currency
+      // console.log('this.focusIndex:', this.focusIndex)
+      if (index === this.focusIndex) {
+        if (this.currencyList[index].input === null) {
+          // console.log(this.currencyList[index])
+          this.currencyList[index].currentPrice = '请输入金额'
+        }
+      } else {
+        for (let y = 0; y < response.data.resources.length; y++) {
+          if (basCur + '=X' === response.data.resources[y].resource.fields.symbol) {
+            topCur = response.data.resources[y].resource.fields['xch-sell']
+          }
+          if (goalCur + '=X' === response.data.resources[y].resource.fields.symbol) {
+            bottomCur = 1 / response.data.resources[y].resource.fields['xch-sell']
+          }
+        }
+        currency = 1 / (topCur * bottomCur)
+        this.currencyList[index].currentPrice = (100 * currency).toFixed(2)
+        if (this.currencyList[index].input === null) {
+          this.currencyList[index].input = (this.currencyList[this.focusIndex].input * currency).toFixed(2)
+        } else {
+          this.currencyList[index].input = (this.currencyList[this.focusIndex].input * currency).toFixed(2)
+        }
+      }
     }
   }
 }
